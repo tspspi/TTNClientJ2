@@ -4,6 +4,8 @@ hs_err_pid*
 .settings
 .project
 .classpath
+.classes
+.classes/*
 -ssl*
 src/META-INF
 bin/META-INF
