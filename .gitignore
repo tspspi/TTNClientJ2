@@ -1,0 +1,10 @@
+*.class
+*.log
+hs_err_pid*
+.settings
+.project
+.classpath
+-ssl*
+src/META-INF
+bin/META-INF
+src/DevTest.java
