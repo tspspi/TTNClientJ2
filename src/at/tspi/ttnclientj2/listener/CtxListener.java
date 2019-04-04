@@ -114,6 +114,9 @@ public class CtxListener implements ServletContextListener {
 
     		if(hand == null) { continue; } // Should never happen but catch that possible error anyways
 
+    		// Initialize handler
+    		hand.initializeHandler(sce);
+
     		try {
 				cli = TTNClientFactory.createClient(new URI(uri));
 			} catch (MalformedURLException e) {
