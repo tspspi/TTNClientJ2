@@ -86,6 +86,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 			mqttClient.connect(conOptions, this, new IMqttActionListener() {
 				@Override
 				public void onFailure(IMqttToken arg0, Throwable arg1) {
+					System.err.println("OnFailure: "+(arg1 != null ? arg1.toString() : ""));
 					/*
 						This callback is called whenever we couldn't establish
 						a connection to the server
@@ -114,6 +115,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 						Not subscribed because they are downlink:
 						<appid>/devices/<devid>/down
 					 */
+					System.out.println("MQTT: Connection success, subscribing to channels");
 					synchronized (this) {
 						try {
 							currentState = TTNClient.STATE__CONNECTED;
@@ -286,6 +288,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 
 	@Override
 	public void close() {
+		System.out.println("MQTT: Close requested");
 		synchronized(this) {
 			if(mqttClient == null) { return; }
 			if(!mqttClient.isConnected()) { return; }
@@ -311,6 +314,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 	 */
 	@Override
 	public void connectionLost(Throwable arg0) {
+		System.err.println("MQTT: Connection lost");
 		this.currentState = TTNClient.STATE__ERROR;
 	}
 
@@ -323,12 +327,14 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 	@Override
 	public void messageArrived(String arg0, MqttMessage arg1) throws Exception {
 		// Unused callback
+		System.err.println("MQTT: Message arrived (wrong callback) lost");
 		return;
 	}
 
 	@Override
 	public void connectComplete(boolean arg0, String arg1) {
 		// We use this to track our connection state for the isConnected function
+		System.out.println("MQTT: Connect complete");
 		this.currentState = TTNClient.STATE__CONNECTED;
 	}
 }
