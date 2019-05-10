@@ -2,6 +2,7 @@
 package at.tspi.ttnclientj2.clientmqtt;
 
 import java.nio.charset.Charset;
+import java.util.Date;
 
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -123,6 +124,8 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 							mqttClient.subscribe(getAppId() + "/devices/+/events/#", 1, new IMqttMessageListener() {
 								@Override
 								public void messageArrived(String topic, MqttMessage message) {
+									Date date = new Date(System.currentTimeMillis());
+									System.out.println("Message arrived at "+topic+" ("+date.toString()+")");
 									try {
 										String[] topicParts = topic.split("\\/");
 										if (topicParts.length < 5) {
@@ -288,7 +291,8 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 
 	@Override
 	public void close() {
-		System.out.println("MQTT: Close requested");
+		Date date = new Date(System.currentTimeMillis());
+		System.out.println("MQTT: Close requested ("+date.toString()+")");
 		synchronized(this) {
 			if(mqttClient == null) { return; }
 			if(!mqttClient.isConnected()) { return; }
@@ -314,7 +318,8 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 	 */
 	@Override
 	public void connectionLost(Throwable arg0) {
-		System.err.println("MQTT: Connection lost");
+		Date date = new Date(System.currentTimeMillis());
+		System.err.println("MQTT: Connection lost ("+date+")");
 		this.currentState = TTNClient.STATE__ERROR;
 	}
 
@@ -327,14 +332,16 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 	@Override
 	public void messageArrived(String arg0, MqttMessage arg1) throws Exception {
 		// Unused callback
-		System.err.println("MQTT: Message arrived (wrong callback) lost");
+		Date date = new Date(System.currentTimeMillis());
+		System.err.println("MQTT: Message arrived (wrong callback) lost ("+date.toString()+")");
 		return;
 	}
 
 	@Override
 	public void connectComplete(boolean arg0, String arg1) {
 		// We use this to track our connection state for the isConnected function
-		System.out.println("MQTT: Connect complete");
+		Date date = new Date(System.currentTimeMillis());
+		System.out.println("MQTT: Connect complete ("+date.toString()+")");
 		this.currentState = TTNClient.STATE__CONNECTED;
 	}
 }
