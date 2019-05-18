@@ -118,122 +118,125 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 					 */
 					System.out.println("MQTT: Connection success, subscribing to channels");
 					synchronized (this) {
-						try {
-							currentState = TTNClient.STATE__CONNECTED;
-
-							mqttClient.subscribe(getAppId() + "/devices/+/events/#", 1, new IMqttMessageListener() {
-								@Override
-								public void messageArrived(String topic, MqttMessage message) {
-									Date date = new Date(System.currentTimeMillis());
-									System.out.println("Message arrived at "+topic+" ("+date.toString()+")");
-									try {
-										String[] topicParts = topic.split("\\/");
-										if (topicParts.length < 5) {
-											System.err.println("Unknown topic " + topic);
-											mqttClient.messageArrivedComplete(message.getId(), message.getQos());
-											return; // Simply ignore unknown messages
-										}
-
-										String appId = topicParts[0];
-										String devId = topicParts[2];
-										String eventName = topicParts[4];
-
-										TTNMessage msg = null;
-
-										if (topicParts.length == 5) {
-											if (eventName.equals("create")) {
-												msg = new TTNDeviceEventCreated(devId, appId);
-												((TTNDeviceEventCreated) msg).setImmutable();
-											} else if (eventName.equals("delete")) {
-												msg = new TTNDeviceEventDeleted(devId, appId);
-												((TTNDeviceEventDeleted) msg).setImmutable();
-											} else if (eventName.equals("activations")) {
-												msg = new TTNDeviceEventActivation(devId, appId);
-												String jsonString = new String(message.getPayload());
-												((TTNDeviceEventActivation) msg).setFromJSON(jsonString);
-												((TTNDeviceEventActivation) msg).setImmutable();
-											} else {
-												System.err.println("Unknown message at " + topic);
-												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
-												return;
-											}
-										} else if (topicParts.length == 6) {
-											if (eventName.equals("down") && topicParts[5].equals("acks")) {
-												msg = new TTNDeviceEventDownlinkAck(devId, appId);
-												((TTNDeviceEventDownlinkAck) msg).setImmutable();
-											} else if (eventName.equals("down") && topicParts[5].equals("errors")) {
-												msg = new TTNDeviceEventErrorDownlink(devId, appId);
-												((TTNDeviceEventErrorDownlink) msg).setImmutable();
-											} else if (eventName.equals("down") && topicParts[5].equals("scheduled")) {
-												msg = new TTNDeviceEventDownlinkSheduled(devId, appId);
-												((TTNDeviceEventDownlinkSheduled) msg).setImmutable();
-											} else if (eventName.equals("down") && topicParts[5].equals("sent")) {
-												// ToDo: Fill with data
-												msg = new TTNDownlinkSent(devId, appId);
-												((TTNDownlinkSent) msg).setImmutable();
-											} else if (eventName.equals("up") && topicParts[5].equals("errors")) {
-												msg = new TTNDeviceEventErrorUplink(devId, appId);
-												((TTNDeviceEventErrorUplink) msg).setImmutable();
-											} else if (eventName.equals("activations")
-													&& topicParts[5].equals("errors")) {
-												msg = new TTNDeviceEventErrorActivation(devId, appId);
-												((TTNDeviceEventErrorActivation) msg).setImmutable();
-											} else {
-												System.err.println("Unknown message at " + topic);
-												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
-												return;
-											}
-										} else {
-											System.err.println("Unknown message at " + topic);
-											mqttClient.messageArrivedComplete(message.getId(), message.getQos());
-											return;
-										}
-
-										// Post to attached listeners and ACK if any of them handeled the message
-										if (internalHandleMessage(msg)) {
-											mqttClient.messageArrivedComplete(message.getId(), message.getQos());
-										}
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-							});
-
-							mqttClient.subscribe(getAppId() + "/devices/+/up", 1, new IMqttMessageListener() {
-								@Override
-								public void messageArrived(String topic, MqttMessage message) {
-									try {
-										String[] topicParts = topic.split("\\/");
-										if (topicParts.length != 4) {
-											System.err.println("Unknown message at " + topic);
-											mqttClient.messageArrivedComplete(message.getId(), message.getQos());
-											return;
-										}
-
-										String appId = topicParts[0];
-										String devId = topicParts[2];
-										byte[] payload = message.getPayload();
-										TTNMessageUplink msg = new TTNMessageUplink();
-
-										msg.setAppId(appId);
-										msg.setDeviceId(devId);
-										msg.setFromJSON(new String(payload));
-										msg.setImmutable();
-										if (internalHandleMessage(msg)) {
-											mqttClient.messageArrivedComplete(message.getId(), message.getQos());
-										}
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-							});
-						} catch (MqttException e) {
+						if(currentState != TTNClient.STATE__CONNECTED) {
 							try {
-								mqttClient.close();
-							} catch (MqttException e2) {
-								e2.printStackTrace();
+								currentState = TTNClient.STATE__CONNECTED;
+	
+								mqttClient.subscribe(getAppId() + "/devices/+/events/#", 1, new IMqttMessageListener() {
+									@Override
+									public void messageArrived(String topic, MqttMessage message) {
+										Date date = new Date(System.currentTimeMillis());
+										System.out.println("Message arrived at "+topic+" ("+date.toString()+")");
+										try {
+											String[] topicParts = topic.split("\\/");
+											if (topicParts.length < 5) {
+												System.err.println("Unknown topic " + topic);
+												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+												return; // Simply ignore unknown messages
+											}
+	
+											String appId = topicParts[0];
+											String devId = topicParts[2];
+											String eventName = topicParts[4];
+	
+											TTNMessage msg = null;
+	
+											if (topicParts.length == 5) {
+												if (eventName.equals("create")) {
+													msg = new TTNDeviceEventCreated(devId, appId);
+													((TTNDeviceEventCreated) msg).setImmutable();
+												} else if (eventName.equals("delete")) {
+													msg = new TTNDeviceEventDeleted(devId, appId);
+													((TTNDeviceEventDeleted) msg).setImmutable();
+												} else if (eventName.equals("activations")) {
+													msg = new TTNDeviceEventActivation(devId, appId);
+													String jsonString = new String(message.getPayload());
+													((TTNDeviceEventActivation) msg).setFromJSON(jsonString);
+													((TTNDeviceEventActivation) msg).setImmutable();
+												} else {
+													System.err.println("Unknown message at " + topic);
+													mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+													return;
+												}
+											} else if (topicParts.length == 6) {
+												if (eventName.equals("down") && topicParts[5].equals("acks")) {
+													msg = new TTNDeviceEventDownlinkAck(devId, appId);
+													((TTNDeviceEventDownlinkAck) msg).setImmutable();
+												} else if (eventName.equals("down") && topicParts[5].equals("errors")) {
+													msg = new TTNDeviceEventErrorDownlink(devId, appId);
+													((TTNDeviceEventErrorDownlink) msg).setImmutable();
+												} else if (eventName.equals("down") && topicParts[5].equals("scheduled")) {
+													msg = new TTNDeviceEventDownlinkSheduled(devId, appId);
+													((TTNDeviceEventDownlinkSheduled) msg).setImmutable();
+												} else if (eventName.equals("down") && topicParts[5].equals("sent")) {
+													// ToDo: Fill with data
+													msg = new TTNDownlinkSent(devId, appId);
+													((TTNDownlinkSent) msg).setImmutable();
+												} else if (eventName.equals("up") && topicParts[5].equals("errors")) {
+													msg = new TTNDeviceEventErrorUplink(devId, appId);
+													((TTNDeviceEventErrorUplink) msg).setImmutable();
+												} else if (eventName.equals("activations")
+														&& topicParts[5].equals("errors")) {
+													msg = new TTNDeviceEventErrorActivation(devId, appId);
+													((TTNDeviceEventErrorActivation) msg).setImmutable();
+												} else {
+													System.err.println("Unknown message at " + topic);
+													mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+													return;
+												}
+											} else {
+												System.err.println("Unknown message at " + topic);
+												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+												return;
+											}
+	
+											// Post to attached listeners and ACK if any of them handeled the message
+											if (internalHandleMessage(msg)) {
+												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+											}
+										} catch (Exception e) {
+											e.printStackTrace();
+										}
+									}
+								});
+	
+								mqttClient.subscribe(getAppId() + "/devices/+/up", 1, new IMqttMessageListener() {
+									@Override
+									public void messageArrived(String topic, MqttMessage message) {
+										try {
+											String[] topicParts = topic.split("\\/");
+											if (topicParts.length != 4) {
+												System.err.println("Unknown message at " + topic);
+												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+												return;
+											}
+	
+											String appId = topicParts[0];
+											String devId = topicParts[2];
+											byte[] payload = message.getPayload();
+											TTNMessageUplink msg = new TTNMessageUplink();
+	
+											msg.setAppId(appId);
+											msg.setDeviceId(devId);
+											msg.setFromJSON(new String(payload));
+											msg.setImmutable();
+											if (internalHandleMessage(msg)) {
+												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+											}
+										} catch (Exception e) {
+											e.printStackTrace();
+										}
+									}
+								});
+							} catch (MqttException e) {
+								try {
+									mqttClient.close();
+								} catch (MqttException e2) {
+									e2.printStackTrace();
+								}
+								mqttClient = null;
+								currentState = TTNClientMQTT.STATE__ERROR;
 							}
-							mqttClient = null;
 						}
 					}
 				}
@@ -318,9 +321,11 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 	 */
 	@Override
 	public void connectionLost(Throwable arg0) {
-		Date date = new Date(System.currentTimeMillis());
-		System.err.println("MQTT: Connection lost ("+date+")");
-		this.currentState = TTNClient.STATE__ERROR;
+		synchronized(this) {
+			Date date = new Date(System.currentTimeMillis());
+			System.err.println("MQTT: Connection lost ("+date+")");
+			this.currentState = TTNClient.STATE__ERROR;
+		}
 	}
 
 	@Override
@@ -340,8 +345,130 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 	@Override
 	public void connectComplete(boolean arg0, String arg1) {
 		// We use this to track our connection state for the isConnected function
-		Date date = new Date(System.currentTimeMillis());
-		System.out.println("MQTT: Connect complete ("+date.toString()+")");
-		this.currentState = TTNClient.STATE__CONNECTED;
+		synchronized(this) {
+			Date date = new Date(System.currentTimeMillis());
+			System.out.println("MQTT: Connect complete ("+date.toString()+")");
+
+			if(currentState != TTNClient.STATE__CONNECTED) {
+				try {
+					currentState = TTNClient.STATE__CONNECTED;
+	
+					mqttClient.subscribe(getAppId() + "/devices/+/events/#", 1, new IMqttMessageListener() {
+						@Override
+						public void messageArrived(String topic, MqttMessage message) {
+							Date date = new Date(System.currentTimeMillis());
+							System.out.println("Message arrived at "+topic+" ("+date.toString()+")");
+							try {
+								String[] topicParts = topic.split("\\/");
+								if (topicParts.length < 5) {
+									System.err.println("Unknown topic " + topic);
+									mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+									return; // Simply ignore unknown messages
+								}
+	
+								String appId = topicParts[0];
+								String devId = topicParts[2];
+								String eventName = topicParts[4];
+	
+								TTNMessage msg = null;
+	
+								if (topicParts.length == 5) {
+									if (eventName.equals("create")) {
+										msg = new TTNDeviceEventCreated(devId, appId);
+										((TTNDeviceEventCreated) msg).setImmutable();
+									} else if (eventName.equals("delete")) {
+										msg = new TTNDeviceEventDeleted(devId, appId);
+										((TTNDeviceEventDeleted) msg).setImmutable();
+									} else if (eventName.equals("activations")) {
+										msg = new TTNDeviceEventActivation(devId, appId);
+										String jsonString = new String(message.getPayload());
+										((TTNDeviceEventActivation) msg).setFromJSON(jsonString);
+										((TTNDeviceEventActivation) msg).setImmutable();
+									} else {
+										System.err.println("Unknown message at " + topic);
+										mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+										return;
+									}
+								} else if (topicParts.length == 6) {
+									if (eventName.equals("down") && topicParts[5].equals("acks")) {
+										msg = new TTNDeviceEventDownlinkAck(devId, appId);
+										((TTNDeviceEventDownlinkAck) msg).setImmutable();
+									} else if (eventName.equals("down") && topicParts[5].equals("errors")) {
+										msg = new TTNDeviceEventErrorDownlink(devId, appId);
+										((TTNDeviceEventErrorDownlink) msg).setImmutable();
+									} else if (eventName.equals("down") && topicParts[5].equals("scheduled")) {
+										msg = new TTNDeviceEventDownlinkSheduled(devId, appId);
+										((TTNDeviceEventDownlinkSheduled) msg).setImmutable();
+									} else if (eventName.equals("down") && topicParts[5].equals("sent")) {
+										// ToDo: Fill with data
+										msg = new TTNDownlinkSent(devId, appId);
+										((TTNDownlinkSent) msg).setImmutable();
+									} else if (eventName.equals("up") && topicParts[5].equals("errors")) {
+										msg = new TTNDeviceEventErrorUplink(devId, appId);
+										((TTNDeviceEventErrorUplink) msg).setImmutable();
+									} else if (eventName.equals("activations")
+											&& topicParts[5].equals("errors")) {
+										msg = new TTNDeviceEventErrorActivation(devId, appId);
+										((TTNDeviceEventErrorActivation) msg).setImmutable();
+									} else {
+										System.err.println("Unknown message at " + topic);
+										mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+										return;
+									}
+								} else {
+									System.err.println("Unknown message at " + topic);
+									mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+									return;
+								}
+	
+								// Post to attached listeners and ACK if any of them handeled the message
+								if (internalHandleMessage(msg)) {
+									mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					});
+	
+					mqttClient.subscribe(getAppId() + "/devices/+/up", 1, new IMqttMessageListener() {
+						@Override
+						public void messageArrived(String topic, MqttMessage message) {
+							try {
+								String[] topicParts = topic.split("\\/");
+								if (topicParts.length != 4) {
+									System.err.println("Unknown message at " + topic);
+									mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+									return;
+								}
+	
+								String appId = topicParts[0];
+								String devId = topicParts[2];
+								byte[] payload = message.getPayload();
+								TTNMessageUplink msg = new TTNMessageUplink();
+	
+								msg.setAppId(appId);
+								msg.setDeviceId(devId);
+								msg.setFromJSON(new String(payload));
+								msg.setImmutable();
+								if (internalHandleMessage(msg)) {
+									mqttClient.messageArrivedComplete(message.getId(), message.getQos());
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					});
+				} catch (MqttException e) {
+					try {
+						mqttClient.close();
+					} catch (MqttException e2) {
+						e2.printStackTrace();
+					}
+					currentState = TTNClient.STATE__ERROR;
+					mqttClient = null;
+				}
+			}
+		}
 	}
 }
