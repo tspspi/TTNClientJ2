@@ -25,7 +25,7 @@ public class TTNClientFactory {
 	public static TTNClient createClient(URI uri) throws MalformedURLException {
 		/*
 			Creates a TTN Client by (non FQDN) URI. Supported formats look like:
-			
+
 				mqtt://appid:user@region:port/localClientId
 				amqp://appid:user@region:port/localClientId
 		 */
@@ -55,7 +55,7 @@ public class TTNClientFactory {
 		}
 		if((port < 0) || (port > 65535)) { throw new MalformedURLException("Port is outside of supported range"); }
 
-		String clientId = uri.getPath();
+		String clientId = null; // uri.getPath();
 
 		boolean bValidRegion = false;
 		for(String s : knownRegions) { if(s.equals(region)) { bValidRegion = true; break; } }
