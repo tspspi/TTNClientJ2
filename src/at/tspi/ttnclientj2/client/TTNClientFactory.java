@@ -55,7 +55,7 @@ public class TTNClientFactory {
 		}
 		if((port < 0) || (port > 65535)) { throw new MalformedURLException("Port is outside of supported range"); }
 
-		String clientId = null; // uri.getPath();
+		String clientId = uri.getPath();
 
 		boolean bValidRegion = false;
 		for(String s : knownRegions) { if(s.equals(region)) { bValidRegion = true; break; } }
