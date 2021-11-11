@@ -44,11 +44,23 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 	public TTNClientMQTT(String region, String appId, String accessKey, int port, String clientId) {
 		super(region, appId, accessKey, port, clientId);
 
+		boolean bV2Region = false;
+		for(String s : knownRegions) {
+			if(s.equals(region)) {
+				bV2Region = true;
+				break;
+			}
+		}
+
 		conOptions = new MqttConnectOptions();
 		conOptions.setAutomaticReconnect(true);
 		conOptions.setHttpsHostnameVerificationEnabled(true);
 		conOptions.setPassword(accessKey.toCharArray());
-		conOptions.setUserName(appId);
+		if(!bV2Region) {
+			conOptions.setUserName(appId);
+		} else {
+			conOptions.setUserName(appId + "@ttn");
+		}
 		if(clientId == null) {
 			conOptions.setCleanSession(true);
 			this.setClientId(MqttAsyncClient.generateClientId());
@@ -64,14 +76,6 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 		} else {
 			// Whenever we cannot decide assume its SSL (not insane unencrypted traffic)
 			brokerUri = brokerUri + "ssl://";
-		}
-
-		boolean bV2Region = false;
-		for(String s : knownRegions) {
-			if(s.equals(region)) {
-				bV2Region = true;
-				break;
-			}
 		}
 
 		if(bV2Region) {
