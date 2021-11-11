@@ -10,8 +10,6 @@ import javax.xml.crypto.dsig.spec.HMACParameterSpec;
 import at.tspi.ttnclientj2.clientmqtt.TTNClientMQTT;
 
 public class TTNClientFactory {
-	private static final String[] knownRegions = { "eu", "us-west", "brazil", "asia-se" };
-
 	// Singleton collection
 	private static HashMap<String, TTNClient> clientPool;
 	private static Object sync;
@@ -56,10 +54,6 @@ public class TTNClientFactory {
 		if((port < 0) || (port > 65535)) { throw new MalformedURLException("Port is outside of supported range"); }
 
 		String clientId = uri.getPath();
-
-		boolean bValidRegion = false;
-		for(String s : knownRegions) { if(s.equals(region)) { bValidRegion = true; break; } }
-		if(!bValidRegion) { throw new MalformedURLException("TTN Client does not recognize the supplied region "+region); }
 
 		String identifier = appId+"@"+region;
 

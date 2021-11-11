@@ -38,6 +38,9 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 	private String brokerUri;
 	private int currentState;
 
+	/* This is for v2 regions */
+	private static final String[] knownRegions = { "eu", "us-west", "brazil", "asia-se" };
+
 	public TTNClientMQTT(String region, String appId, String accessKey, int port, String clientId) {
 		super(region, appId, accessKey, port, clientId);
 
@@ -62,7 +65,20 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 			// Whenever we cannot decide assume its SSL (not insane unencrypted traffic)
 			brokerUri = brokerUri + "ssl://";
 		}
-		brokerUri = brokerUri + region + ".thethings.network:" + port;
+
+		boolean bV2Region = false;
+		for(String s : knownRegions) {
+			if(s.equals(region)) {
+				bV2Region = true;
+				break;
+			}
+		}
+
+		if(bV2Region) {
+			brokerUri = brokerUri + region + ".thethings.network:" + port;
+		} else {
+			brokerUri = brokerUri + region + ":" + port;
+		}
 
 		mqttClient = null;
 	}
@@ -121,7 +137,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 						if(currentState != TTNClient.STATE__CONNECTED) {
 							try {
 								currentState = TTNClient.STATE__CONNECTED;
-	
+
 								mqttClient.subscribe(getAppId() + "/devices/+/events/#", 1, new IMqttMessageListener() {
 									@Override
 									public void messageArrived(String topic, MqttMessage message) {
@@ -134,13 +150,13 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 												return; // Simply ignore unknown messages
 											}
-	
+
 											String appId = topicParts[0];
 											String devId = topicParts[2];
 											String eventName = topicParts[4];
-	
+
 											TTNMessage msg = null;
-	
+
 											if (topicParts.length == 5) {
 												if (eventName.equals("create")) {
 													msg = new TTNDeviceEventCreated(devId, appId);
@@ -189,7 +205,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 												return;
 											}
-	
+
 											// Post to attached listeners and ACK if any of them handeled the message
 											if (internalHandleMessage(msg)) {
 												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
@@ -199,7 +215,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 										}
 									}
 								});
-	
+
 								mqttClient.subscribe(getAppId() + "/devices/+/up", 1, new IMqttMessageListener() {
 									@Override
 									public void messageArrived(String topic, MqttMessage message) {
@@ -210,12 +226,12 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 												return;
 											}
-	
+
 											String appId = topicParts[0];
 											String devId = topicParts[2];
 											byte[] payload = message.getPayload();
 											TTNMessageUplink msg = new TTNMessageUplink();
-	
+
 											msg.setAppId(appId);
 											msg.setDeviceId(devId);
 											msg.setFromJSON(new String(payload));
@@ -274,7 +290,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 			if(mqttClient == null) { return false; }
 			if(!mqttClient.isConnected()) { return false; }
 
-		
+
 			try {
 				mqttClient.publish(
 					msg.getAppId()+"/devices/"+msg.getDevId()+"/down",
@@ -352,7 +368,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 			if(currentState != TTNClient.STATE__CONNECTED) {
 				try {
 					currentState = TTNClient.STATE__CONNECTED;
-	
+
 					mqttClient.subscribe(getAppId() + "/devices/+/events/#", 1, new IMqttMessageListener() {
 						@Override
 						public void messageArrived(String topic, MqttMessage message) {
@@ -365,13 +381,13 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 									mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 									return; // Simply ignore unknown messages
 								}
-	
+
 								String appId = topicParts[0];
 								String devId = topicParts[2];
 								String eventName = topicParts[4];
-	
+
 								TTNMessage msg = null;
-	
+
 								if (topicParts.length == 5) {
 									if (eventName.equals("create")) {
 										msg = new TTNDeviceEventCreated(devId, appId);
@@ -420,7 +436,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 									mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 									return;
 								}
-	
+
 								// Post to attached listeners and ACK if any of them handeled the message
 								if (internalHandleMessage(msg)) {
 									mqttClient.messageArrivedComplete(message.getId(), message.getQos());
@@ -430,7 +446,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 							}
 						}
 					});
-	
+
 					mqttClient.subscribe(getAppId() + "/devices/+/up", 1, new IMqttMessageListener() {
 						@Override
 						public void messageArrived(String topic, MqttMessage message) {
@@ -441,12 +457,12 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 									mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 									return;
 								}
-	
+
 								String appId = topicParts[0];
 								String devId = topicParts[2];
 								byte[] payload = message.getPayload();
 								TTNMessageUplink msg = new TTNMessageUplink();
-	
+
 								msg.setAppId(appId);
 								msg.setDeviceId(devId);
 								msg.setFromJSON(new String(payload));
