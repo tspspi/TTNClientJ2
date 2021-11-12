@@ -220,9 +220,11 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 									}
 								});
 
+								System.err.println("Subscribing to "+getAppId() + "/devices/+/up");
 								mqttClient.subscribe(getAppId() + "/devices/+/up", 1, new IMqttMessageListener() {
 									@Override
 									public void messageArrived(String topic, MqttMessage message) {
+										System.out.println("Received message on topic "+topic);
 										try {
 											String[] topicParts = topic.split("\\/");
 											if (topicParts.length != 4) {
