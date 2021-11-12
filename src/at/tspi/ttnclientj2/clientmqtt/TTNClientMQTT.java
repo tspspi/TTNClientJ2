@@ -142,7 +142,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 							try {
 								currentState = TTNClient.STATE__CONNECTED;
 
-								mqttClient.subscribe(getAppId() + "/devices/+/events/#", 1, new IMqttMessageListener() {
+								mqttClient.subscribe("v3/"+getAppId()+ "@ttn/devices/+/events/#", 1, new IMqttMessageListener() {
 									@Override
 									public void messageArrived(String topic, MqttMessage message) {
 										Date date = new Date(System.currentTimeMillis());
@@ -221,10 +221,10 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 								});
 
 								System.err.println("Subscribing to "+getAppId() + "/devices/+/up");
-								mqttClient.subscribe(getAppId() + "/devices/+/up", 1, new IMqttMessageListener() {
+								mqttClient.subscribe("v3/"+getAppId()+ "@ttn/devices/+/up", 1, new IMqttMessageListener() {
 									@Override
 									public void messageArrived(String topic, MqttMessage message) {
-										System.out.println("Received message on topic "+topic);
+										System.out.println("Message arrived at "+topic);
 										try {
 											String[] topicParts = topic.split("\\/");
 											if (topicParts.length != 4) {
@@ -375,7 +375,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 				try {
 					currentState = TTNClient.STATE__CONNECTED;
 
-					mqttClient.subscribe(getAppId() + "/devices/+/events/#", 1, new IMqttMessageListener() {
+					mqttClient.subscribe("v3/"+getAppId()+ "@ttn/devices/+/events/#", 1, new IMqttMessageListener() {
 						@Override
 						public void messageArrived(String topic, MqttMessage message) {
 							Date date = new Date(System.currentTimeMillis());
@@ -453,7 +453,7 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 						}
 					});
 
-					mqttClient.subscribe(getAppId() + "/devices/+/up", 1, new IMqttMessageListener() {
+					mqttClient.subscribe("v3/"+getAppId()+ "@ttn/devices/+/up", 1, new IMqttMessageListener() {
 						@Override
 						public void messageArrived(String topic, MqttMessage message) {
 							try {
