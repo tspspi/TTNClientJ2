@@ -73,6 +73,7 @@ public class TTNMessageUplink extends TTNMessage {
 				if(vDevId != null) {
 					if(!(vDevId instanceof JSONString)) { throw new TTNMessageParsingException("Unexpected data type"); }
 					this.deviceId = ((JSONString)vDevId).get();
+					System.out.println("Decoded Device ID: "+this.deviceId);
 				}
 
 				JSONValue vApplicationIds = ((JSONObject)vEndDeviceIDs).get("application_ids");
@@ -82,6 +83,7 @@ public class TTNMessageUplink extends TTNMessage {
 					if(vAppId != null) {
 						if(!(vAppId instanceof JSONString)) { throw new TTNMessageParsingException("Unexpected data type"); }
 						this.appId = ((JSONString)vAppId).get();
+						System.out.println("Decoded application ID: "+this.appId);
 					}
 				}
 			}
@@ -132,12 +134,16 @@ public class TTNMessageUplink extends TTNMessage {
 			}
 		}
  		{
-			JSONValue v = msgObj.get("payload_raw");
-			if(v != null) {
-				if(!(v instanceof JSONString)) { throw new TTNMessageParsingException("Unexpected data type"); }
-				this.payloadRaw = Base64.decodeBase64(((JSONString)v).get());
-			} else {
-				this.payloadRaw = null;
+			JSONValue uplinkMessage = msgObj.get("uplink_message");
+			if(uplinkMessage != null) {
+				if(!(uplinkMessage instanceof JSONObject)) { throw new TTNMessageParsingException("Unexpected data type"); }
+				JSONValue v = ((JSONObject)uplinkMessage).get("frm_payload");
+				if(v != null) {
+					if(!(v instanceof JSONString)) { throw new TTNMessageParsingException("Unexpected data type"); }
+					this.payloadRaw = Base64.decodeBase64(((JSONString)v).get());
+				} else {
+					this.payloadRaw = null;
+				}
 			}
 		}
  		{
