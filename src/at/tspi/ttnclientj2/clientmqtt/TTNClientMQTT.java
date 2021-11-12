@@ -149,19 +149,19 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 										System.out.println("Message arrived at "+topic+" ("+date.toString()+")");
 										try {
 											String[] topicParts = topic.split("\\/");
-											if (topicParts.length < 5) {
+											if (topicParts.length < 6) {
 												System.err.println("Unknown topic " + topic);
 												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 												return; // Simply ignore unknown messages
 											}
 
-											String appId = topicParts[0];
-											String devId = topicParts[2];
-											String eventName = topicParts[4];
+											String appId = topicParts[1];
+											String devId = topicParts[3];
+											String eventName = topicParts[5];
 
 											TTNMessage msg = null;
 
-											if (topicParts.length == 5) {
+											if (topicParts.length == 6) {
 												if (eventName.equals("create")) {
 													msg = new TTNDeviceEventCreated(devId, appId);
 													((TTNDeviceEventCreated) msg).setImmutable();
@@ -178,25 +178,25 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 													mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 													return;
 												}
-											} else if (topicParts.length == 6) {
-												if (eventName.equals("down") && topicParts[5].equals("acks")) {
+											} else if (topicParts.length == 7) {
+												if (eventName.equals("down") && topicParts[6].equals("acks")) {
 													msg = new TTNDeviceEventDownlinkAck(devId, appId);
 													((TTNDeviceEventDownlinkAck) msg).setImmutable();
-												} else if (eventName.equals("down") && topicParts[5].equals("errors")) {
+												} else if (eventName.equals("down") && topicParts[6].equals("errors")) {
 													msg = new TTNDeviceEventErrorDownlink(devId, appId);
 													((TTNDeviceEventErrorDownlink) msg).setImmutable();
-												} else if (eventName.equals("down") && topicParts[5].equals("scheduled")) {
+												} else if (eventName.equals("down") && topicParts[6].equals("scheduled")) {
 													msg = new TTNDeviceEventDownlinkSheduled(devId, appId);
 													((TTNDeviceEventDownlinkSheduled) msg).setImmutable();
-												} else if (eventName.equals("down") && topicParts[5].equals("sent")) {
+												} else if (eventName.equals("down") && topicParts[6].equals("sent")) {
 													// ToDo: Fill with data
 													msg = new TTNDownlinkSent(devId, appId);
 													((TTNDownlinkSent) msg).setImmutable();
-												} else if (eventName.equals("up") && topicParts[5].equals("errors")) {
+												} else if (eventName.equals("up") && topicParts[6].equals("errors")) {
 													msg = new TTNDeviceEventErrorUplink(devId, appId);
 													((TTNDeviceEventErrorUplink) msg).setImmutable();
 												} else if (eventName.equals("activations")
-														&& topicParts[5].equals("errors")) {
+														&& topicParts[6].equals("errors")) {
 													msg = new TTNDeviceEventErrorActivation(devId, appId);
 													((TTNDeviceEventErrorActivation) msg).setImmutable();
 												} else {
@@ -220,21 +220,21 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 									}
 								});
 
-								System.err.println("Subscribing to "+getAppId() + "/devices/+/up");
+								System.err.println("Subscribing to v3/"+getAppId()+ "@ttn/devices/+/up");
 								mqttClient.subscribe("v3/"+getAppId()+ "@ttn/devices/+/up", 1, new IMqttMessageListener() {
 									@Override
 									public void messageArrived(String topic, MqttMessage message) {
 										System.out.println("Message arrived at "+topic);
 										try {
 											String[] topicParts = topic.split("\\/");
-											if (topicParts.length != 4) {
+											if (topicParts.length != 5) {
 												System.err.println("Unknown message at " + topic);
 												mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 												return;
 											}
 
-											String appId = topicParts[0];
-											String devId = topicParts[2];
+											String appId = topicParts[1];
+											String devId = topicParts[3];
 											byte[] payload = message.getPayload();
 											TTNMessageUplink msg = new TTNMessageUplink();
 
@@ -382,19 +382,19 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 							System.out.println("Message arrived at "+topic+" ("+date.toString()+")");
 							try {
 								String[] topicParts = topic.split("\\/");
-								if (topicParts.length < 5) {
+								if (topicParts.length < 6) {
 									System.err.println("Unknown topic " + topic);
 									mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 									return; // Simply ignore unknown messages
 								}
 
-								String appId = topicParts[0];
-								String devId = topicParts[2];
-								String eventName = topicParts[4];
+								String appId = topicParts[1];
+								String devId = topicParts[3];
+								String eventName = topicParts[5];
 
 								TTNMessage msg = null;
 
-								if (topicParts.length == 5) {
+								if (topicParts.length == 6) {
 									if (eventName.equals("create")) {
 										msg = new TTNDeviceEventCreated(devId, appId);
 										((TTNDeviceEventCreated) msg).setImmutable();
@@ -411,25 +411,25 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 										mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 										return;
 									}
-								} else if (topicParts.length == 6) {
-									if (eventName.equals("down") && topicParts[5].equals("acks")) {
+								} else if (topicParts.length == 7) {
+									if (eventName.equals("down") && topicParts[6].equals("acks")) {
 										msg = new TTNDeviceEventDownlinkAck(devId, appId);
 										((TTNDeviceEventDownlinkAck) msg).setImmutable();
-									} else if (eventName.equals("down") && topicParts[5].equals("errors")) {
+									} else if (eventName.equals("down") && topicParts[6].equals("errors")) {
 										msg = new TTNDeviceEventErrorDownlink(devId, appId);
 										((TTNDeviceEventErrorDownlink) msg).setImmutable();
-									} else if (eventName.equals("down") && topicParts[5].equals("scheduled")) {
+									} else if (eventName.equals("down") && topicParts[6].equals("scheduled")) {
 										msg = new TTNDeviceEventDownlinkSheduled(devId, appId);
 										((TTNDeviceEventDownlinkSheduled) msg).setImmutable();
-									} else if (eventName.equals("down") && topicParts[5].equals("sent")) {
+									} else if (eventName.equals("down") && topicParts[6].equals("sent")) {
 										// ToDo: Fill with data
 										msg = new TTNDownlinkSent(devId, appId);
 										((TTNDownlinkSent) msg).setImmutable();
-									} else if (eventName.equals("up") && topicParts[5].equals("errors")) {
+									} else if (eventName.equals("up") && topicParts[6].equals("errors")) {
 										msg = new TTNDeviceEventErrorUplink(devId, appId);
 										((TTNDeviceEventErrorUplink) msg).setImmutable();
 									} else if (eventName.equals("activations")
-											&& topicParts[5].equals("errors")) {
+											&& topicParts[6].equals("errors")) {
 										msg = new TTNDeviceEventErrorActivation(devId, appId);
 										((TTNDeviceEventErrorActivation) msg).setImmutable();
 									} else {
@@ -458,14 +458,14 @@ public class TTNClientMQTT extends TTNClient implements MqttCallbackExtended {
 						public void messageArrived(String topic, MqttMessage message) {
 							try {
 								String[] topicParts = topic.split("\\/");
-								if (topicParts.length != 4) {
+								if (topicParts.length != 5) {
 									System.err.println("Unknown message at " + topic);
 									mqttClient.messageArrivedComplete(message.getId(), message.getQos());
 									return;
 								}
 
-								String appId = topicParts[0];
-								String devId = topicParts[2];
+								String appId = topicParts[1];
+								String devId = topicParts[3];
 								byte[] payload = message.getPayload();
 								TTNMessageUplink msg = new TTNMessageUplink();
 
