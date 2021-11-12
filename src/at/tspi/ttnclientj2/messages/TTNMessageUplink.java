@@ -54,6 +54,7 @@ public class TTNMessageUplink extends TTNMessage {
 		if(bImmutable) { throw new TTNAccessDeniedException("Object is immutable"); }
 
 		try {
+			System.out.println(json);
 			JSONValue v = JSONParser.parseString(json);
 			if(!(v instanceof JSONObject)) { throw new TTNMessageParsingException("Unexpected JSON data type"); }
 			return setFromJSON((JSONObject)v);
@@ -65,17 +66,24 @@ public class TTNMessageUplink extends TTNMessage {
 		if(bImmutable) { throw new TTNAccessDeniedException("Object is immutable"); }
 
  		{
-			JSONValue v = msgObj.get("app_id");
-			if(v != null) {
-				if(!(v instanceof JSONString)) { throw new TTNMessageParsingException("Unexpected data type"); }
-				this.appId = ((JSONString)v).get();
-			}
-		}
- 		{
-			JSONValue v = msgObj.get("dev_id");
-			if(v != null) {
-				if(!(v instanceof JSONString)) { throw new TTNMessageParsingException("Unexpected data type"); }
-				this.deviceId = ((JSONString)v).get();
+			JSONValue vEndDeviceIDs = msgObj.get("end_device_ids");
+			if(vEndDeviceIDs != null) {
+				if(!(vEndDeviceIDs instanceof JSONObject)) { throw new TTNMessageParsingException("Unexpected data type"); }
+				JSONValue vDevId = ((JSONObject)vEndDeviceIDs).get("device_id");
+				if(vDevId != null) {
+					if(!(vDevId instanceof JSONString)) { throw new TTNMessageParsingException("Unexpected data type"); }
+					this.deviceId = ((JSONString)vDevId).get();
+				}
+
+				JSONValue vApplicationIds = ((JSONObject)vEndDeviceIDs).get("application_ids");
+				if(vApplicationIds != null) {
+					if(!(vApplicationIds instanceof JSONObject)) { throw new TTNMessageParsingException("Unexpected data type"); }
+					vAppId = ((JSONObject)vApplicationIds).get("application_id");
+					if(vAppId != null) {
+						if(!(vAppId instanceof JSONString)) { throw new TTNMessageParsingException("Unexpected data type"); }
+						this.appId = ((JSONString)vAppId).get();
+					}
+				}
 			}
 		}
  		{
