@@ -78,7 +78,7 @@ public class TTNMessageUplink extends TTNMessage {
 				JSONValue vApplicationIds = ((JSONObject)vEndDeviceIDs).get("application_ids");
 				if(vApplicationIds != null) {
 					if(!(vApplicationIds instanceof JSONObject)) { throw new TTNMessageParsingException("Unexpected data type"); }
-					vAppId = ((JSONObject)vApplicationIds).get("application_id");
+					JSONValue vAppId = ((JSONObject)vApplicationIds).get("application_id");
 					if(vAppId != null) {
 						if(!(vAppId instanceof JSONString)) { throw new TTNMessageParsingException("Unexpected data type"); }
 						this.appId = ((JSONString)vAppId).get();
